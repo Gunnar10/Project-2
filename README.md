@@ -33,4 +33,5 @@ You can also embed plots, for example:
 
 Note that the `echo = FALSE` parameter was added to the code chunk to
 prevent printing of the R code that generated the plot.
+
 rmarkdown::render(input = "Project-2.Rmd", output_format = "github_document", output_file = "README.md")
