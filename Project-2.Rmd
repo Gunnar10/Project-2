@@ -51,7 +51,7 @@ teamWLTotals <- function(team = 12, game = 2){
 # win loss totals by season
 wlTotalBySeason <- function(){
   outputAPI <- fromJSON("https://records.nhl.com/site/api/franchise-season-results")
-    output <- outputAPI$data %>% arrange(teamId)
+    output <- outputAPI$data %>% arrange(teamId) 
     return(output)
 }  
 # win loss totals by season for a given team for regular or playoff games.
@@ -61,7 +61,9 @@ teamWLTotalBySeason <- function(team = 12, game = 2){
   fitlerURL2 <- "%20and%20gameTypeId="
   fullURL <- paste0(baseURL, filterURL1, team, fitlerURL2, game)
   outputAPI <- fromJSON(fullURL)
-    output <- outputAPI$data %>% select(teamName, seasonId, contains("wins"), homeLosses, roadLosses, losses, gamesPlayed)
+    output <- outputAPI$data %>% arrange(seasonId) %>%
+      mutate(year = paste0(substr(seasonId, 3,4), "-", substr(seasonId, 7,8))) %>%
+      select(teamName, seasonId, year, contains("wins"), homeLosses, roadLosses, losses, gamesPlayed)
     return(output)
 }
 
@@ -70,20 +72,80 @@ teamWLTotalBySeason <- function(team = 12, game = 2){
 I am interested in finding the best active NHL team.
 
 ```{r EDA, warning=FALSE, message=FALSE}
-# contingecy table for the number of cups each active NHL team has.
-allteamTotals <- allTeamTotals(active = TRUE)
+# contingency table for the number of cups each active NHL team has.
+allteamTotals <- allTeamTotals(active = TRUE, game = 2) %>% mutate(avgWinPct = mean(gameWinPctg))
   table(allteamTotals$teamName, allteamTotals$cups)
   
-# teams win the 5 highest win percentages
+# teams win the 5 highest regular season win percentages
 topWinPercent <- allTeamTotals(active = TRUE, game = 2) %>%
   arrange(desc(gameWinPctg)) %>% distinct(teamName, .keep_all = TRUE) %>% select(teamName, teamId, gameWinPctg, cups)
   head(topWinPercent,5)
 
-VegasGoldenKnights <- teamWLTotalBySeason(54,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
-coloradoAvalanche <- teamWLTotalBySeason(21,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
-dallasStars <- teamWLTotalBySeason(25,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
-winnipegJets <- teamWLTotalBySeason(52,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
-montrealCanadiens <- teamWLTotalBySeason(8,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
+VegasGoldenKnights <- teamWLTotalBySeason(54,2) %>% 
+  mutate(meanWins = mean(wins, na.rm = TRUE), winPctg = wins/gamesPlayed, avgWinPctg = mean(winPctg, na.rm = TRUE))
+
+coloradoAvalanche <- teamWLTotalBySeason(21,2) %>% 
+  mutate(meanWins = mean(wins, na.rm = TRUE), winPctg = wins/gamesPlayed, avgWinPctg = mean(winPctg, na.rm = TRUE))
+
+dallasStars <- teamWLTotalBySeason(25,2) %>% 
+  mutate(meanWins = mean(wins, na.rm = TRUE), winPctg = wins/gamesPlayed, avgWinPctg = mean(winPctg, na.rm = TRUE))
+
+winnipegJets <- teamWLTotalBySeason(52,2) %>% 
+  mutate(meanWins = mean(wins, na.rm = TRUE), winPctg = wins/gamesPlayed, avgWinPctg = mean(winPctg, na.rm = TRUE))
+
+montrealCanadiens <- teamWLTotalBySeason(8,2) %>% 
+  mutate(meanWins = mean(wins, na.rm = TRUE), winPctg = wins/gamesPlayed, avgWinPctg = mean(winPctg, na.rm = TRUE))
+
+carolinaHurricanes <- teamWLTotalBySeason(12,2) %>% 
+  mutate(meanWins = mean(wins, na.rm = TRUE), winPctg = wins/gamesPlayed, avgWinPctg = mean(winPctg, na.rm = TRUE))
+
+```
+
+```{r graphs, warning=FALSE, message=FALSE}
+g <- ggplot(data = allteamTotals, aes(x= gameWinPctg))
+g + geom_boxplot(outlier.colour = "red") + labs(x = "Win Percentage", title = "Box Plot of Regular Season Win Percentages")
+
+g <- ggplot(data = VegasGoldenKnights, aes(x = seasonId, y = winPctg))
+g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslategrey", size = 3) + 
+  labs(x = "Year", y = "win Percentage", title = "Vegas Golden Knights Win Percentage by Year") + 
+    geom_hline(aes(yintercept = avgWinPctg, linetype = "Vegas Golden Knights"), color = "purple") + 
+      geom_hline(aes(yintercept = allteamTotals$avgWinPct[1], linetype = "All Teams"), color = "red") +
+        scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
+
+g <- ggplot(data = coloradoAvalanche, aes(x = seasonId, y = winPctg))
+g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslategrey", size = 3) + 
+  labs(x = "Year", y = "win Percentage", title = "Colorado Avalanche Win Percentage by Year") + 
+    geom_hline(aes(yintercept = avgWinPctg, linetype = "Colorado Avalanche"), color = "purple") + 
+      geom_hline(aes(yintercept = allteamTotals$avgWinPct[1], linetype = "All Teams"), color = "red") +
+        scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
+
+g <- ggplot(data = dallasStars, aes(x = seasonId, y = winPctg))
+g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslategrey", size = 3) + 
+  labs(x = "Year", y = "win Percentage", title = "Dallas Stars Win Percentage by Year") + 
+    geom_hline(aes(yintercept = avgWinPctg, linetype = "Dallas Stars"), color = "purple") + 
+      geom_hline(aes(yintercept = allteamTotals$avgWinPct[1], linetype = "All Teams"), color = "red") +
+        scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
+
+g <- ggplot(data = winnipegJets, aes(x = seasonId, y = winPctg))
+g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslategrey", size = 3) + 
+  labs(x = "Year", y = "win Percentage", title = "Winnipeg Jets Win Percentage by Year") + 
+    geom_hline(aes(yintercept = avgWinPctg, linetype = "Winnipeg Jets"), color = "purple") + 
+      geom_hline(aes(yintercept = allteamTotals$avgWinPct[1], linetype = "All Teams"), color = "red") +
+        scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
+
+g <- ggplot(data = montrealCanadiens, aes(x = seasonId, y = winPctg))
+g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslategrey", size = 3) + 
+  labs(x = "Year", y = "win Percentage", title = "Montreal Canadiens Win Percentage by Year") + 
+  geom_hline(aes(yintercept = avgWinPctg, linetype = "Montreal Canadiens"), color = "purple") + 
+  geom_hline(aes(yintercept = allteamTotals$avgWinPct[1], linetype = "All Teams"), color = "red") +
+  scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
+
+g <- ggplot(data = carolinaHurricanes, aes(x = seasonId, y = winPctg))
+g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslategrey", size = 3) + 
+  labs(x = "Year", y = "win Percentage", title = "Carolina Hurricanes Win Percentage by Year") + 
+  geom_hline(aes(yintercept = avgWinPctg, linetype = "Carolina Hurricanes"), color = "purple") + 
+  geom_hline(aes(yintercept = allteamTotals$avgWinPct[1], linetype = "All Teams"), color = "red") +
+  scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 
 ```
 
