@@ -14,7 +14,7 @@ library(tidyverse)
 
 # Functions to Quiry API
 
-Here I made a list of the `teamNames` corrisponding to their `teamID`.
+Here I made a list of the `teamNames` corresponding to their `teamID`.
 
 ``` r
 outputAPI1 <- fromJSON("https://records.nhl.com/site/api/franchise-season-results")
@@ -83,73 +83,25 @@ outputAPI1 <- fromJSON("https://records.nhl.com/site/api/franchise-season-result
     ## 57     57          Toronto Arenas
     ## 58     58    Toronto St. Patricks
 
-Below is the list of the team 1 New Jersey Devils  
-2 New York Islanders  
-3 New York Rangers  
-4 Philadelphia Flyers  
-5 Pittsburgh Penguins  
-6 Boston Bruins  
-7 Buffalo Sabres  
-8 Montréal Canadiens  
-9 Ottawa Senators  
-10 Toronto Maple Leafs  
-11 Atlanta Thrashers  
-12 Carolina Hurricanes  
-13 Florida Panthers  
-14 Tampa Bay Lightning  
-15 Washington Capitals  
-16 Chicago Blackhawks  
-17 Detroit Red Wings  
-18 Nashville Predators  
-19 St. Louis Blues  
-20 Calgary Flames  
-21 Colorado Avalanche  
-22 Edmonton Oilers  
-23 Vancouver Canucks  
-24 Anaheim Ducks  
-25 Dallas Stars  
-26 Los Angeles Kings  
-27 Phoenix Coyotes  
-28 San Jose Sharks  
-29 Columbus Blue Jakets  
-30 Minnesota Wild  
-31 Minnesota NorthStars  
-32 Quebec Nordiques  
-33 Winnipeg Jets (1979)  
-34 Hartford Whalers  
-35 Colorado Rockies  
-36 Ottawa Senators (1917)  
-37 Hamilton Tigers  
-38 Pittsburgh Pirates  
-39 Philadelphia Quakers  
-40 Detroit Cougars  
-41 Montreal Wanderers  
-42 Quebec Bulldogs  
-43 Montreal Maroons  
-44 New York Americans  
-45 St. Louis Eagles  
-46 Oakland Seals  
-47 Atlanta Flames  
-48 Kansas City Scouts  
-49 Cleveland Barons  
-50 Detroit Falcons  
-51 Brooklyn Americans  
-52 Winnipeg Jets  
-53 Arizona Coyotes  
-54 Vegas Golden Knights  
-55 Seattle Kraken  
-56 California Golden Seals  
-57 Toronto Arenas  
-58 Toronto St. Patricks
+Below is are some function I made to queary the NHL records API. The
+above data frame serves as a key for the team names and corresponding
+`teamID`. There is an additional filter the user can add for whether the
+games are regular season or playoff games.  
+\* 2 for regular season game  
+\* 3 for playoff game
 
 ``` r
-# total home wins and losses
-allTeamTotals <- function(){
-  output <- fromJSON("https://records.nhl.com/site/api/franchise-team-totals")
+# team totals for active NHL teams for either regular or playoff games.
+allTeamTotals <- function(active = TRUE, game = 2){
+  baseURL <- "https://records.nhl.com/site/api/"
+  filterURL <- "franchise-team-totals?cayenneExp=activeTeam="
+  filterURL2 <- "%20and%20gameTypeId="
+  fullURL <- paste0(baseURL, filterURL, active, filterURL2, game)
+  output <- fromJSON(fullURL)
   return(output$data)
 }
-
-teamWinLossTotals <- function(team = 12, game = 2){
+# win loss totals for a given team for either regular or playoff games
+teamWLTotals <- function(team = 12, game = 2){
   baseURL <- "https://records.nhl.com/site/api/"
   filterURL1 <- "franchise-team-totals?cayenneExp=teamId="
   fitlerURL2 <- "%20and%20gameTypeId="
@@ -158,13 +110,13 @@ teamWinLossTotals <- function(team = 12, game = 2){
     output <- outputAPI$data %>% select(teamName, contains("wins"), homeLosses, roadLosses, losses, gamesPlayed, gameWinPctg)
     return(output)
 }
-  
+# win loss totals by season
 wlTotalBySeason <- function(){
   outputAPI <- fromJSON("https://records.nhl.com/site/api/franchise-season-results")
     output <- outputAPI$data %>% arrange(teamId)
     return(output)
 }  
-
+# win loss totals by season for a given team for regular or playoff games.
 teamWLTotalBySeason <- function(team = 12, game = 2){
   baseURL <- "https://records.nhl.com/site/api/"
   filterURL1 <- "franchise-season-results?cayenneExp=teamId="
@@ -174,6 +126,71 @@ teamWLTotalBySeason <- function(team = 12, game = 2){
     output <- outputAPI$data %>% select(teamName, seasonId, contains("wins"), homeLosses, roadLosses, losses, gamesPlayed)
     return(output)
 }
+```
+
+I am interested in finding the best active NHL team.
+
+``` r
+# contingecy table for the number of cups each active NHL team has.
+allteamTotals <- allTeamTotals(active = TRUE)
+  table(allteamTotals$teamName, allteamTotals$cups)
+```
+
+    ##                        
+    ##                         0 1 2 3 4 5 6 11 23
+    ##   Anaheim Ducks         0 1 0 0 0 0 0  0  0
+    ##   Arizona Coyotes       1 0 0 0 0 0 0  0  0
+    ##   Boston Bruins         0 0 0 0 0 0 1  0  0
+    ##   Buffalo Sabres        1 0 0 0 0 0 0  0  0
+    ##   Calgary Flames        0 1 0 0 0 0 0  0  0
+    ##   Carolina Hurricanes   0 1 0 0 0 0 0  0  0
+    ##   Chicago Blackhawks    0 0 0 0 0 0 1  0  0
+    ##   Colorado Avalanche    0 0 0 1 0 0 0  0  0
+    ##   Columbus Blue Jackets 1 0 0 0 0 0 0  0  0
+    ##   Dallas Stars          0 1 0 0 0 0 0  0  0
+    ##   Detroit Red Wings     0 0 0 0 0 0 0  1  0
+    ##   Edmonton Oilers       0 0 0 0 0 1 0  0  0
+    ##   Florida Panthers      1 0 0 0 0 0 0  0  0
+    ##   Los Angeles Kings     0 0 1 0 0 0 0  0  0
+    ##   Minnesota Wild        1 0 0 0 0 0 0  0  0
+    ##   Montréal Canadiens    0 0 0 0 0 0 0  0  1
+    ##   Nashville Predators   1 0 0 0 0 0 0  0  0
+    ##   New Jersey Devils     0 0 0 1 0 0 0  0  0
+    ##   New York Islanders    0 0 0 0 1 0 0  0  0
+    ##   New York Rangers      0 0 0 0 1 0 0  0  0
+    ##   Ottawa Senators       1 0 0 0 0 0 0  0  0
+    ##   Philadelphia Flyers   0 0 1 0 0 0 0  0  0
+    ##   Pittsburgh Penguins   0 0 0 0 0 1 0  0  0
+    ##   San Jose Sharks       1 0 0 0 0 0 0  0  0
+    ##   Seattle Kraken        1 0 0 0 0 0 0  0  0
+    ##   St. Louis Blues       0 1 0 0 0 0 0  0  0
+    ##   Tampa Bay Lightning   0 0 0 1 0 0 0  0  0
+    ##   Toronto Maple Leafs   0 0 0 0 0 0 0  1  0
+    ##   Vancouver Canucks     1 0 0 0 0 0 0  0  0
+    ##   Vegas Golden Knights  0 1 0 0 0 0 0  0  0
+    ##   Washington Capitals   0 1 0 0 0 0 0  0  0
+    ##   Winnipeg Jets         1 0 0 0 0 0 0  0  0
+
+``` r
+# teams win the 5 highest win percentages
+topWinPercent <- allTeamTotals(active = TRUE, game = 2) %>%
+  arrange(desc(gameWinPctg)) %>% distinct(teamName, .keep_all = TRUE) %>% select(teamName, teamId, gameWinPctg, cups)
+  head(topWinPercent,5)
+```
+
+    ##               teamName teamId gameWinPctg cups
+    ## 1 Vegas Golden Knights     54      0.5868    1
+    ## 2   Colorado Avalanche     21      0.5201    3
+    ## 3         Dallas Stars     25      0.5178    1
+    ## 4        Winnipeg Jets     52      0.5115    0
+    ## 5   Montréal Canadiens      8      0.5073   23
+
+``` r
+VegasGoldenKnights <- teamWLTotalBySeason(54,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
+coloradoAvalanche <- teamWLTotalBySeason(21,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
+dallasStars <- teamWLTotalBySeason(25,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
+winnipegJets <- teamWLTotalBySeason(52,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
+montrealCanadiens <- teamWLTotalBySeason(8,2) %>% mutate(meanWins = mean(wins), winPercent = wins/gamesPlayed)
 ```
 
 rmarkdown::render(input = “Project-2.Rmd”, output_format =
