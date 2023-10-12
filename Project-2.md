@@ -260,7 +260,8 @@ g + geom_boxplot(outlier.colour = "red") + labs(x = "Win Percentage", title = "B
 
 ![](Project-2_files/figure-gfm/boxplot1-1.png)<!-- -->
 
-Here is a box plot of the average number of wins for each team.
+Here is a box plot to show the spread of the average number of wins for
+each team.
 
 ``` r
 wByTeam <- wlTotalBySeason() %>% select(teamName, seasonId, wins) %>% 
@@ -339,15 +340,16 @@ g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslat
   scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 ```
 
-![](Project-2_files/figure-gfm/graphs-6.png)<!-- --> From these line
-graphs and the contingency table ,of the teams and the cups they have
-won, we can determine the Montreal Canadians seem to be one of the best
-teams in history as they consistently have an above overage win
-percentage, their win percentage is in the top 5 of all active teams,
-they are the oldest team in the top 5, and they have the most cup wins.
-But, we can also determine the Carolina Hurricanes seem to be a decent
-team because they have an above average win percentage and they seem to
-have been improving since 2016.
+![](Project-2_files/figure-gfm/graphs-6.png)<!-- -->
+
+From these line graphs and the contingency table,of the teams and the
+cups they have won, we can determine the Montreal Canadians seem to be
+one of the best teams in history as they consistently have an above
+overage win percentage, their win percentage is in the top 5 of all
+active teams, they are the oldest team in the top 5, and they have the
+most cup wins. But, we can also determine the Carolina Hurricanes seem
+to be a decent team because they have an above average win percentage,
+they have won a cup, and they seem to have been improving since 2016.
 
 # Heat Map
 
@@ -361,13 +363,14 @@ g <- ggplot(data = data, aes(x= teamId, y = seasonId, fill = wins))
   g + geom_tile()
 ```
 
-![](Project-2_files/figure-gfm/unnamed-chunk-1-1.png)<!-- --> \# Take
-Aways  
+![](Project-2_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+# Take Aways
+
 The main take away from this project is the Montreal Canadians seem to
 be a pretty impressive franchise as they have a top 5 win percentage
 over the years and the most cups wins. But the Hurricanes seem to be a
 decent team so if I decide to start watching hockey I reckon I will pull
 for them since I’m from NC.
 
-rmarkdown::render(input = “Project-2.Rmd”, output_format =
-“github_document”, output_file = “README.md”)
+<!-- rmarkdown::render(input = "Project-2.Rmd", output_format = "github_document", output_file = "README.md") -->

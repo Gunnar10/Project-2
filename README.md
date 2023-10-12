@@ -363,13 +363,14 @@ g <- ggplot(data = data, aes(x= teamId, y = seasonId, fill = wins))
   g + geom_tile()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- --> \# Take
-Aways  
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+# Take Aways
+
 The main take away from this project is the Montreal Canadians seem to
 be a pretty impressive franchise as they have a top 5 win percentage
 over the years and the most cups wins. But the Hurricanes seem to be a
 decent team so if I decide to start watching hockey I reckon I will pull
 for them since I’m from NC.
 
-rmarkdown::render(input = “Project-2.Rmd”, output_format =
-“github_document”, output_file = “README.md”)
+<!-- rmarkdown::render(input = "Project-2.Rmd", output_format = "github_document", output_file = "README.md") -->
