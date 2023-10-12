@@ -363,7 +363,7 @@ g <- ggplot(data = data, aes(x= teamId, y = seasonId, fill = wins))
   g + geom_tile()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
 # Take Aways
 
