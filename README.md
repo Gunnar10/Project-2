@@ -1,7 +1,7 @@
 Project-2
 ================
 Jacob Press
-2023-10-09
+2023-10-11
 
 # Project Purpose
 
@@ -90,11 +90,10 @@ outputAPI1 <- fromJSON("https://records.nhl.com/site/api/franchise-season-result
     ## 57     57          Toronto Arenas
     ## 58     58    Toronto St. Patricks
 
-Below is are some functions I made to query the NHL API. The above data
-frame serves as a key for the team names and corresponding `teamID`.
-There are 2 additional filters the user can add for whether the games
-are regular season, playoff games and if the team is an active hockey
-team or not.
+Below is are some functions I made to query the NHL API. The above table
+serves as a key for the team names and corresponding `teamID`. There are
+2 additional filters the user can add for whether the games are regular
+season, playoff games and if the team is an active hockey team or not.
 
 - game = 2 for regular season game  
 - game = 3 for playoff game  
@@ -108,7 +107,11 @@ The functions I wrote are:
     or playoff games.
 2.  `teamWLTotals` with the filter `team` and `games` will return the
     win/loss data for a team which is input by the user for their
-    regular or playoff season. 1.
+    regular or playoff season.
+3.  `wlTotalBySeason` will return all the totals for each team for each
+    season.  
+4.  `teamWLTotalBySeason` will return the win/loss information for a
+    given team for either the regular season or the playoffs.
 
 ``` r
 # team totals for active NHL teams for either regular or playoff games.
@@ -150,7 +153,11 @@ teamWLTotalBySeason <- function(team = 12, game = 2){
 }
 ```
 
-I am interested in finding the best active NHL team.
+# Exploratory Data Analysis
+
+I am interested in finding the best active NHL team so I produced a
+contingency table of the active teams and the number of cups they have
+won.
 
 ``` r
 # contingency table for the number of cups each active NHL team has.
@@ -193,6 +200,12 @@ allteamTotals <- allTeamTotals(active = TRUE, game = 2) %>% mutate(avgWinPct = m
     ##   Washington Capitals   0 1 0 0 0 0 0  0  0
     ##   Winnipeg Jets         1 0 0 0 0 0 0  0  0
 
+Here I made a list of the top 5 teams with the highest win percentages
+in the regular season.  
+Note: I decided to only look at the regular season because I think the
+playoff season’s win percentage would be skewed due to it being a
+tournament.
+
 ``` r
 # teams win the 5 highest regular season win percentages
 topWinPercent <- allTeamTotals(active = TRUE, game = 2) %>%
@@ -206,6 +219,14 @@ topWinPercent <- allTeamTotals(active = TRUE, game = 2) %>%
     ## 3         Dallas Stars     25      0.5178    1
     ## 4        Winnipeg Jets     52      0.5115    0
     ## 5   Montréal Canadiens      8      0.5073   23
+
+Here I made data frames of the top 5 teams by win percentage, I decided
+to include the Carolina Hurricanes since I am from NC I wanted to see
+how the Hurricanes stack up to top teams by win percentage.
+
+The data frames include the `seasonID`, `year`, `homeWins`, `wins`,
+`homeLosses`, `roadLosses,` `Losses`, `gamesPlayed`, `meanWins`, and
+`overallWinPctg` variables.
 
 ``` r
 VegasGoldenKnights <- teamWLTotalBySeason(54,2) %>% 
@@ -227,12 +248,33 @@ carolinaHurricanes <- teamWLTotalBySeason(12,2) %>%
   mutate(meanWins = mean(wins, na.rm = TRUE), winPctg = wins/gamesPlayed, overallWinPctg = teamWLTotals(12,2)$gameWinPctg)
 ```
 
+# Graphs
+
+Here is a box plot showing the spread of the win percentages for the
+regular seasons for all the teams.
+
 ``` r
 g <- ggplot(data = allteamTotals, aes(x= gameWinPctg))
 g + geom_boxplot(outlier.colour = "red") + labs(x = "Win Percentage", title = "Box Plot of Regular Season Win Percentages")
 ```
 
-![](README_files/figure-gfm/graphs-1.png)<!-- -->
+![](README_files/figure-gfm/boxplot1-1.png)<!-- -->
+
+Here is a box plot to show the spread of the average number of wins for
+each team.
+
+``` r
+wByTeam <- wlTotalBySeason() %>% select(teamName, seasonId, wins) %>% 
+  group_by(teamName) %>% mutate(avgWins = mean(wins))
+
+g <- ggplot(data = wByTeam, aes(x= avgWins))
+g + geom_boxplot(outlier.colour = "red") + labs(x = "Average Wins", title = "Box Plot of the Average Number of Wins of Each Team")
+```
+
+![](README_files/figure-gfm/boxplot2-1.png)<!-- -->
+
+Below are line graphs of the win percentages for the top 5 teams and the
+Carolina Hurricanes by the years.
 
 ``` r
 g <- ggplot(data = VegasGoldenKnights, aes(x = year, y = winPctg))
@@ -243,7 +285,7 @@ g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslat
         scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 ```
 
-![](README_files/figure-gfm/graphs-2.png)<!-- -->
+![](README_files/figure-gfm/graphs-1.png)<!-- -->
 
 ``` r
 g <- ggplot(data = coloradoAvalanche, aes(x = year, y = winPctg))
@@ -254,7 +296,7 @@ g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslat
         scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 ```
 
-![](README_files/figure-gfm/graphs-3.png)<!-- -->
+![](README_files/figure-gfm/graphs-2.png)<!-- -->
 
 ``` r
 g <- ggplot(data = dallasStars, aes(x = year, y = winPctg))
@@ -265,7 +307,7 @@ g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslat
         scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 ```
 
-![](README_files/figure-gfm/graphs-4.png)<!-- -->
+![](README_files/figure-gfm/graphs-3.png)<!-- -->
 
 ``` r
 g <- ggplot(data = winnipegJets, aes(x = year, y = winPctg))
@@ -276,7 +318,7 @@ g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslat
         scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 ```
 
-![](README_files/figure-gfm/graphs-5.png)<!-- -->
+![](README_files/figure-gfm/graphs-4.png)<!-- -->
 
 ``` r
 g <- ggplot(data = montrealCanadiens, aes(x = year, y = winPctg))
@@ -287,7 +329,7 @@ g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslat
   scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 ```
 
-![](README_files/figure-gfm/graphs-6.png)<!-- -->
+![](README_files/figure-gfm/graphs-5.png)<!-- -->
 
 ``` r
 g <- ggplot(data = carolinaHurricanes, aes(x = year, y = winPctg))
@@ -298,15 +340,36 @@ g + geom_line(color = "darkseagreen", size = 1.2) + geom_point(color = "darkslat
   scale_linetype_manual(name = "Average Win Percentage", values = c(1,2), guide = guide_legend(override.aes = list(color = c("red", "purple"))))
 ```
 
-![](README_files/figure-gfm/graphs-7.png)<!-- -->
+![](README_files/figure-gfm/graphs-6.png)<!-- -->
+
+From these line graphs and the contingency table,of the teams and the
+cups they have won, we can determine the Montreal Canadians seem to be
+one of the best teams in history as they consistently have an above
+overage win percentage, their win percentage is in the top 5 of all
+active teams, they are the oldest team in the top 5, and they have the
+most cup wins. But, we can also determine the Carolina Hurricanes seem
+to be a decent team because they have an above average win percentage,
+they have won a cup, and they seem to have been improving since 2016.
+
+# Heat Map
+
+Here I included a heat map of the wins by year and teamId.I know this
+graph is not very useful but we had to include a graph we didn’t use
+during class, and currently I am out of ideas.
 
 ``` r
 data <- wlTotalBySeason()
-g <- ggplot(data = data, aes(x= teamName, y = seasonId, fill = wins))
+g <- ggplot(data = data, aes(x= teamId, y = seasonId, fill = wins))
   g + geom_tile()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- --> \# Take
+Aways  
+The main take away from this project is the Montreal Canadians seem to
+be a pretty impressive franchise as they have a top 5 win percentage
+over the years and the most cups wins. But the Hurricanes seem to be a
+decent team so if I decide to start watching hockey I reckon I will pull
+for them since I’m from NC.
 
 rmarkdown::render(input = “Project-2.Rmd”, output_format =
 “github_document”, output_file = “README.md”)
